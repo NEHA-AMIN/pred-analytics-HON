@@ -19,7 +19,7 @@ user_personas:
     scroll_probability: 0.60
     add_to_cart_probability: 0.05
     purchase_probability: 0.01
-    
+
   # Researchers: 25% of users - medium engagement, compare items
   researcher:
     probability: 0.25
@@ -29,7 +29,7 @@ user_personas:
     scroll_probability: 0.80
     add_to_cart_probability: 0.15
     purchase_probability: 0.05
-    
+
   # Buyers: 5% of users - high intent, quick decisions
   buyer:
     probability: 0.05
@@ -48,25 +48,25 @@ item_catalog:
       price_range: [50, 2000]
       discount_probability: 0.30
       discount_range: [5, 40]
-      
+
     - name: "Clothing"
       num_items: 300
       price_range: [20, 300]
       discount_probability: 0.50
       discount_range: [10, 60]
-      
+
     - name: "Home & Kitchen"
       num_items: 250
       price_range: [15, 500]
       discount_probability: 0.25
       discount_range: [5, 30]
-      
+
     - name: "Books"
       num_items: 150
       price_range: [10, 80]
       discount_probability: 0.20
       discount_range: [10, 50]
-      
+
     - name: "Sports & Outdoors"
       num_items: 100
       price_range: [25, 800]
@@ -78,7 +78,7 @@ session:
   min_duration_seconds: 30
   max_duration_seconds: 3600
   inactivity_threshold_minutes: 30  # Time gap to create new session
-  
+
 # Temporal patterns
 temporal:
   # Hour of day multipliers (24 values, 0-23)
@@ -111,7 +111,7 @@ temporal:
     - 1.5  # 21:00
     - 1.2  # 22:00
     - 0.8  # 23:00
-    
+
   # Day of week multipliers (0=Monday, 6=Sunday)
   daily_traffic:
     - 1.0  # Monday
@@ -130,7 +130,7 @@ events:
     - add_to_cart
     - remove_from_cart
     - purchase
-    
+
   # Time spent on each event type (seconds)
   duration:
     view: [5, 30]

@@ -8,6 +8,7 @@ When predicting at time T, only use data from BEFORE time T.
 """
 
 from datetime import timedelta
+import yaml
 from typing import Dict
 
 import pandas as pd
@@ -157,8 +158,6 @@ class FeatureEngineer:
         # Filter to events before current time
         historical_events = all_user_events[
             all_user_events["timestamp"] < session_end_time
-        ]
-            all_user_events['timestamp'] < session_end_time
         ]
 
         features = {}

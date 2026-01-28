@@ -1,0 +1,146 @@
+# Data Generation Configuration
+
+# Overall dataset parameters
+dataset:
+  num_users: 10000              # Total unique users to generate
+  num_items: 1000               # Total items in catalog
+  num_days: 90                  # Days of historical data
+  start_date: "2024-08-01"      # Start date for data generation
+  random_seed: 42               # For reproducibility
+
+# User behavior parameters
+user_personas:
+  # Browsers: 70% of users - lots of views, few actions
+  browser:
+    probability: 0.70
+    sessions_per_week: 2
+    avg_items_per_session: 8
+    view_probability: 0.95
+    scroll_probability: 0.60
+    add_to_cart_probability: 0.05
+    purchase_probability: 0.01
+    
+  # Researchers: 25% of users - medium engagement, compare items
+  researcher:
+    probability: 0.25
+    sessions_per_week: 4
+    avg_items_per_session: 15
+    view_probability: 0.98
+    scroll_probability: 0.80
+    add_to_cart_probability: 0.15
+    purchase_probability: 0.05
+    
+  # Buyers: 5% of users - high intent, quick decisions
+  buyer:
+    probability: 0.05
+    sessions_per_week: 3
+    avg_items_per_session: 5
+    view_probability: 0.90
+    scroll_probability: 0.50
+    add_to_cart_probability: 0.40
+    purchase_probability: 0.25
+
+# Item catalog parameters
+item_catalog:
+  categories:
+    - name: "Electronics"
+      num_items: 200
+      price_range: [50, 2000]
+      discount_probability: 0.30
+      discount_range: [5, 40]
+      
+    - name: "Clothing"
+      num_items: 300
+      price_range: [20, 300]
+      discount_probability: 0.50
+      discount_range: [10, 60]
+      
+    - name: "Home & Kitchen"
+      num_items: 250
+      price_range: [15, 500]
+      discount_probability: 0.25
+      discount_range: [5, 30]
+      
+    - name: "Books"
+      num_items: 150
+      price_range: [10, 80]
+      discount_probability: 0.20
+      discount_range: [10, 50]
+      
+    - name: "Sports & Outdoors"
+      num_items: 100
+      price_range: [25, 800]
+      discount_probability: 0.35
+      discount_range: [10, 45]
+
+# Session parameters
+session:
+  min_duration_seconds: 30
+  max_duration_seconds: 3600
+  inactivity_threshold_minutes: 30  # Time gap to create new session
+  
+# Temporal patterns
+temporal:
+  # Hour of day multipliers (24 values, 0-23)
+  hourly_traffic:
+    # Night (0-6): Low traffic
+    - 0.3  # 00:00
+    - 0.2  # 01:00
+    - 0.2  # 02:00
+    - 0.2  # 03:00
+    - 0.2  # 04:00
+    - 0.3  # 05:00
+    - 0.5  # 06:00
+    # Morning (7-11): Rising
+    - 0.8  # 07:00
+    - 1.0  # 08:00
+    - 1.2  # 09:00
+    - 1.3  # 10:00
+    - 1.4  # 11:00
+    # Afternoon (12-17): Peak
+    - 1.5  # 12:00
+    - 1.4  # 13:00
+    - 1.3  # 14:00
+    - 1.2  # 15:00
+    - 1.3  # 16:00
+    - 1.4  # 17:00
+    # Evening (18-23): High
+    - 1.5  # 18:00
+    - 1.6  # 19:00
+    - 1.7  # 20:00
+    - 1.5  # 21:00
+    - 1.2  # 22:00
+    - 0.8  # 23:00
+    
+  # Day of week multipliers (0=Monday, 6=Sunday)
+  daily_traffic:
+    - 1.0  # Monday
+    - 1.0  # Tuesday
+    - 1.1  # Wednesday
+    - 1.1  # Thursday
+    - 1.3  # Friday
+    - 1.5  # Saturday
+    - 1.4  # Sunday
+
+# Event parameters
+events:
+  types:
+    - view
+    - scroll
+    - add_to_cart
+    - remove_from_cart
+    - purchase
+    
+  # Time spent on each event type (seconds)
+  duration:
+    view: [5, 30]
+    scroll: [10, 60]
+    add_to_cart: [2, 10]
+    remove_from_cart: [2, 5]
+    purchase: [30, 120]
+
+# Output parameters
+output:
+  format: "parquet"  # parquet or csv
+  chunk_size: 100000  # Rows per file for large datasets
+  compression: "snappy"

@@ -1,0 +1,83 @@
+# Feature Engineering Configuration
+
+# Target definition
+target:
+  prediction_level: "user_item_session"  # Predict per (user, item, session)
+  label: "purchased_in_next_session"     # Binary: did user purchase this item in next session?
+  min_sessions_required: 2               # User must have at least 2 sessions to create examples
+
+# Feature categories
+features:
+  
+  # 1. Recency features (time-sensitive)
+  recency:
+    - hours_since_last_view
+    - hours_since_last_scroll
+    - hours_since_last_cart
+    - hours_since_last_purchase
+    - days_since_registration
+    
+  # 2. Frequency features (multiple time windows)
+  frequency:
+    windows: [1, 7, 30]  # days
+    metrics:
+      - views_count
+      - scrolls_count
+      - cart_adds_count
+      - purchases_count
+      - unique_items_viewed
+      - unique_categories_viewed
+      
+  # 3. Intent strength (behavioral signals)
+  intent:
+    - view_to_scroll_ratio_7d
+    - scroll_to_cart_ratio_7d
+    - cart_to_purchase_ratio_30d
+    - session_bounce_rate       # Sessions with only 1 view
+    - avg_time_per_item_7d
+    
+  # 4. Price sensitivity
+  price:
+    - user_avg_price_viewed_30d
+    - user_avg_price_purchased_30d
+    - price_vs_user_avg_ratio
+    - discount_affinity_score      # Correlation with discounts
+    - cart_abandonment_price_threshold
+    
+  # 5. User-item affinity
+  user_item:
+    - times_viewed_this_item
+    - times_scrolled_this_item
+    - times_carted_this_item
+    - times_viewed_this_category
+    - category_affinity_percentile
+    
+  # 6. Session context (current session so far)
+  session_context:
+    - session_length_minutes
+    - items_viewed_session
+    - items_scrolled_session
+    - items_carted_session
+    - unique_categories_session
+    - avg_item_price_session
+    
+  # 7. Item features (aggregated on TRAIN only!)
+  item_aggregates:
+    - item_popularity_score         # View count percentile
+    - item_conversion_rate          # Purchase rate
+    - item_avg_time_to_purchase     # Days from first view to purchase
+    - item_cart_abandonment_rate    # Carted but not purchased rate
+    - category_avg_conversion_rate
+
+# Feature computation
+computation:
+  batch_size: 10000                # Process this many sessions at once
+  use_duckdb: true                 # Use DuckDB for fast aggregations
+  cache_intermediate: true         # Cache user/item aggregations
+  
+# Feature validation
+validation:
+  check_leakage: true              # Run automated leakage tests
+  check_nulls: true                # Check for unexpected nulls
+  check_distributions: true        # Flag anomalies
+  max_null_rate: 0.05              # Fail if >5% nulls in any feature

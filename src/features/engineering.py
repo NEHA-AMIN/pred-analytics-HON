@@ -7,11 +7,10 @@ Critical Principle:
 When predicting at time T, only use data from BEFORE time T.
 """
 
+import pandas as pd
+from typing import Dict
 from datetime import timedelta
 import yaml
-from typing import Dict
-
-import pandas as pd
 
 
 class FeatureEngineer:
@@ -41,67 +40,69 @@ class FeatureEngineer:
     ) -> pd.DataFrame:
         """
         Create training examples from sessionized events.
-
+        
         Logic:
         For each user's session N:
           - Items viewed in session N = candidates
-          - Label: was item purchased in session N+1?
+          - Label: was item purchased in ANY of sessions N+1, N+2, N+3?
           - Features: computed using data UP TO END of session N
-
+          
         Args:
             events_df: Sessionized clickstream events
             catalog_df: Item catalog with prices
-
+            
         Returns:
             DataFrame with one row per (user, item, session) with features and labels
         """
         print("🔧 Creating training examples...")
         print(f"   Total events: {len(events_df):,}")
         print(f"   Total sessions: {events_df['session_id'].nunique():,}")
-
+        
         # Sort events
         events_df = events_df.sort_values(['user_id', 'timestamp']).reset_index(drop=True)
-
-        # Get session boundaries
-
+        
         # Create examples
         examples = []
-
+        
         # Group by user
         for user_id, user_events in events_df.groupby('user_id'):
             user_sessions = user_events.groupby('session_id')
             session_ids = list(user_sessions.groups.keys())
-
-            # Need at least 2 sessions (current + next for label)
-            if len(session_ids) < 2:
+            
+            # Need at least 4 sessions (current + 3 lookahead)
+            if len(session_ids) < 4:
                 continue
-
-            # For each session except the last
-            for i in range(len(session_ids) - 1):
+                
+            # For each session except the last 3
+            for i in range(len(session_ids) - 3):
                 current_session_id = session_ids[i]
-                next_session_id = session_ids[i + 1]
-
+                # Look ahead 3 sessions
+                next_3_session_ids = session_ids[i + 1:i + 4]
+                
                 current_session = user_sessions.get_group(current_session_id)
-                next_session = user_sessions.get_group(next_session_id)
-
+                
                 # Get items viewed in current session
                 viewed_items = current_session[
                     current_session['event_type'] == 'view'
                 ]['item_id'].unique()
-
-                # Get items purchased in next session
-                purchased_items = next_session[
-                    next_session['event_type'] == 'purchase'
-                ]['item_id'].unique()
-
+                
+                # Get items purchased in ANY of the next 3 sessions
+                purchased_items = set()
+                for next_session_id in next_3_session_ids:
+                    next_session = user_sessions.get_group(next_session_id)
+                    purchased_in_session = next_session[
+                        next_session['event_type'] == 'purchase'
+                    ]['item_id'].unique()
+                    purchased_items.update(purchased_in_session)
+                
                 # Get session end time (for point-in-time feature computation)
                 session_end_time = current_session['timestamp'].max()
-
+                
                 # Create example for each viewed item
                 for item_id in viewed_items:
-                    # Label: was this item purchased in next session?
+                    # Label: was this item purchased in any of next 3 sessions?
                     label = int(item_id in purchased_items)
-
+                    
                     # Extract features at session end time
                     features = self._extract_features(
                         user_id=user_id,
@@ -111,7 +112,7 @@ class FeatureEngineer:
                         session_end_time=session_end_time,
                         catalog_df=catalog_df
                     )
-
+                    
                     # Combine into example
                     example = {
                         'user_id': user_id,
@@ -121,15 +122,15 @@ class FeatureEngineer:
                         'label': label,
                         **features
                     }
-
+                    
                     examples.append(example)
-
+        
         examples_df = pd.DataFrame(examples)
-
+        
         print(f"\n✅ Created {len(examples_df):,} training examples")
         print(f"   Positive examples (purchase): {examples_df['label'].sum():,} ({examples_df['label'].mean():.2%})")
         print(f"   Negative examples: {(examples_df['label'] == 0).sum():,}")
-
+        
         return examples_df
 
     def _get_session_info(self, events_df: pd.DataFrame) -> pd.DataFrame:

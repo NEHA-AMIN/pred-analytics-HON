@@ -3,7 +3,7 @@
 # Target definition
 target:
   prediction_level: "user_item_session"  # Predict per (user, item, session)
-  label: "purchased_in_next_session"     # Binary: did user purchase this item in next session?
+  label: "purchased_in_next_3_sessions"    # Binary: did user purchase this item in next session?
   min_sessions_required: 2               # User must have at least 2 sessions to create examples
 
 # Feature categories

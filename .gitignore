@@ -69,4 +69,4 @@ htmlcov/
 logs/
 
 # Docker
-*.tar
+*.tarmodels/*.json
